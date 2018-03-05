@@ -79,8 +79,7 @@ protected:
 	
 	void cleanup();
 	
-	void saveAll(const char* path, const dtNavMesh* mesh);
-	dtNavMesh* loadAll(const char* path);
+
 	
 public:
 	Sample_TileMesh();
@@ -101,6 +100,8 @@ public:
 	void removeTile(const float* pos);
 	void buildAllTiles();
 	void removeAllTiles();
+	void saveAll(const char* path, const dtNavMesh* mesh);
+	dtNavMesh* loadAll(const char* path);
 
 private:
 	// Explicitly disabled copy constructor and copy assignment operator.

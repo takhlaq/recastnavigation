@@ -30,6 +30,9 @@
 
 #include <vector>
 #include <string>
+#include <algorithm>
+#include <map>
+#include <fstream>
 
 #include "imgui.h"
 #include "imguiRenderGL.h"
@@ -69,7 +72,104 @@ static SampleItem g_samples[] =
 };
 static const int g_nsamples = sizeof(g_samples) / sizeof(SampleItem);
 
-int main(int /*argc*/, char** /*argv*/)
+std::ofstream of("log.txt", std::ios::app | std::ios::ate | std::ios::out);
+
+Sample* sample = nullptr;
+InputGeom* geom = nullptr;
+BuildSettings settings;
+std::string inputFileName;
+std::string type;
+auto f = fopen("out.log", "ab+");
+
+bool parseArgs(int argc, char* argv[])
+{
+	std::vector<std::string> argVec(argv, argv + argc);
+	int i = argVec[0].find(".exe") == -1 ? 0 : 1;
+	settings = BuildSettings{0};
+	of << "==============\n";
+	of << argc << " " << argVec.size() << "\n";
+	of << argVec[0] << " " << argVec[1] << "\n";
+
+	for (; i + 1 < argVec.size(); i += 2)
+	{
+		std::string arg = argVec[i];
+		std::string val = argVec[i + 1];
+
+		fprintf(f, (arg + " " + val + "\r\n").c_str());
+		//arg = arg.erase(0, arg.find_first_not_of('-'));
+		std::string logStr(arg + " " + val + "\n");
+		of << logStr;
+		if (arg == "--cellSize")
+			settings.cellSize = std::stof(val);
+		else if (arg == "--cellHeight")
+			settings.cellHeight = std::stof(val);
+		else if (arg == "--agentHeight")
+			settings.agentHeight = std::stof(val);
+		else if (arg == "--agentRadius")
+			settings.agentRadius = std::stof(val);
+		else if (arg == "--agentMaxClimb")
+			settings.agentMaxClimb = std::stof(val);
+		else if (arg == "--agentMaxSlope")
+			settings.agentMaxSlope = std::stof(val);
+		else if (arg == "--regionMinSize")
+			settings.regionMinSize = std::stof(val);
+		else if (arg == "--regionMergeSize")
+			settings.regionMergeSize = std::stof(val);
+		else if (arg == "--edgeMaxLen")
+			settings.edgeMaxLen = std::stof(val);
+		else if (arg == "--edgeMaxError")
+			settings.edgeMaxError = std::stof(val);
+		else if (arg == "--vertsPerPoly")
+			settings.vertsPerPoly = std::stof(val);
+		else if (arg == "--detailSampleDist")
+			settings.detailSampleDist = std::stof(val);
+		else if (arg == "--detailSampleMaxError")
+			settings.detailSampleMaxError = std::stof(val);
+		else if (arg == "--partitionType")
+			settings.partitionType = std::stoi(val);
+		else if (arg == "--tileSize")
+			settings.tileSize = std::stof(val);
+		else if (arg == "--obj")
+			inputFileName = val;
+		else if (arg == "--type")
+		{
+			if (val == "tileMesh")
+				sample = new Sample_TileMesh();
+			else if (val == "soloMesh")
+				sample = new Sample_SoloMesh();
+			else if (val == "tempObstacles")
+				sample = new Sample_TempObstacles();
+			type = val;
+		}
+	}
+
+	return sample != nullptr;
+}
+
+bool commandLineBuild()
+{
+	geom = new InputGeom;
+	BuildContext ctx;
+	sample->collectSettings(settings);
+	geom->load(&ctx, inputFileName);
+	sample->setContext(&ctx);
+	sample->handleMeshChanged(geom);
+	//sample->handleBuild();
+	fprintf(f, ctx.getLogText(RC_LOG_ERROR));
+	of << ctx.getLogText(RC_LOG_ERROR);
+	if (type == "tileMesh")
+	{
+		auto tile = static_cast<Sample_TileMesh*>(sample);
+		tile->handleBuild();
+		std::string fileName = inputFileName;
+		fileName = fileName.substr(0, fileName.find_last_of('.'));
+		static_cast<Sample_TileMesh*>(sample)->saveAll(fileName.c_str(), sample->getNavMesh());
+		return true;
+	}
+	return false;
+}
+
+int main(int argc, char* argv[])
 {
 	// Init SDL
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
@@ -78,6 +178,12 @@ int main(int /*argc*/, char** /*argv*/)
 		return -1;
 	}
 
+	if (parseArgs(argc, argv) && commandLineBuild())
+	{
+		fprintf(f, "\nDone!\n");
+		fclose(f);
+		return 0;
+	}
 	// Enable depth buffer.
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
@@ -89,8 +195,8 @@ int main(int /*argc*/, char** /*argv*/)
 	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 	
 	// 4x MSAA.
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
 	SDL_DisplayMode displayMode;
 	SDL_GetCurrentDisplayMode(0, &displayMode);
@@ -174,9 +280,6 @@ int main(int /*argc*/, char** /*argv*/)
 	float markerPosition[3] = {0, 0, 0};
 	bool markerPositionSet = false;
 	
-	InputGeom* geom = 0;
-	Sample* sample = 0;
-
 	const string testCasesFolder = "TestCases";
 	TestCase* test = 0;
 
