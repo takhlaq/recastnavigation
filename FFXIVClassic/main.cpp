@@ -16,6 +16,7 @@ std::set<std::string> settingsFiles;
 std::set<std::string> objFiles;
 PROCESS_INFORMATION info;
 STARTUPINFO sinfo = {sizeof(sinfo)};
+using hclock = std::chrono::high_resolution_clock;
 
 std::string settingsToLaunchArgs(const std::string& path)
 {
@@ -26,7 +27,7 @@ std::string settingsToLaunchArgs(const std::string& path)
 	std::string ret("--type tileMesh");
 	if (!in.good())
 	{
-		std::cout << "Unable to load " << path << " navmesh settings file, attempting to load default.settings\n";
+		std::cout << "\tUnable to load " << path << " navmesh settings file, attempting to load default.settings\n";
 		in.open("default.settings");
 	}
 
@@ -35,6 +36,7 @@ std::string settingsToLaunchArgs(const std::string& path)
 		std::string line;
 		while (std::getline(in, line))
 		{
+			//std::cout << line << "\n";
 			line = line.empty() ? line : line.substr(line.find_first_not_of(' '));
 			if (line.empty() || line[0] == '#' || line[0] == '/')
 				continue;
@@ -50,30 +52,29 @@ std::string settingsToLaunchArgs(const std::string& path)
 	else
 	{
 		static std::string defaultStr(
-			" --tileSize 160.0 --cellSize 0.2 --cellHeight 0.2"
-			" --agentHeight 2.0 --agentRadius 0.5 --agentMaxClimb 0.6 --agentMaxSlope 56"
-			" --regionMinSize 8.0 --regionMergeSize 20.0 --edgeMaxLen 12.0 --edgeMaxError 1.4"
-			" --vertsPerPoly 6.0 --detailSampleDist 6.0 --detailSampleMaxError 1.0 --partitionType 0");
+			" \t--tileSize 160.0 --cellSize 0.2 --cellHeight 0.2"
+			" \t--agentHeight 2.0 --agentRadius 0.5 --agentMaxClimb 0.6 --agentMaxSlope 56"
+			" \t--regionMinSize 8.0 --regionMergeSize 20.0 --edgeMaxLen 12.0 --edgeMaxError 1.4"
+			" \t--vertsPerPoly 6.0 --detailSampleDist 6.0 --detailSampleMaxError 1.0 --partitionType 0");
 
 		ret += defaultStr;
-		std::cout << "Unable to load default navmesh settings file. Using hardcoded defaults instead.\n";
+		std::cout << "\tUnable to load default navmesh settings file. Using hardcoded defaults instead.\n";
 	}
 	return ret;
 }
 
 void cleanup()
 {
-	if (info.hProcess && info.hThread)
-	{
-		TerminateProcess(info.hProcess, EXIT_FAILURE);
-	}
+	std::cout << "\n\nCleaning up Process " << info.dwProcessId << "\n";
+	system(std::string("taskkill /PID" + std::to_string(info.dwProcessId) + std::string(" /F")).c_str());
 }
 
 
 int main(int argc, char* argv[])
 {
 	std::atexit(cleanup);
-	auto start = std::chrono::high_resolution_clock::now();
+	std::set_terminate(cleanup);
+	auto start = hclock::now();
 	for (const auto& path : fs::recursive_directory_iterator("./"))
 	{
 		std::string strPath(path.path().string());
@@ -84,6 +85,7 @@ int main(int argc, char* argv[])
 			settingsFiles.emplace(strPath);
 	}
 	
+	int exportCount = 0;
 	for (const auto& file : objFiles)
 	{
 		std::cout << "\n\n";
@@ -93,22 +95,38 @@ int main(int argc, char* argv[])
 		static std::string launchStr("RecastDemo.exe ");
 		std::string launchArg;
 		auto it = settingsFiles.find(settingsFile);
-		std::cout << fileName << "\n";
-		launchArg += settingsToLaunchArgs(it != settingsFiles.end() ? *it : "__" + fileName);
+		
+		std::cout << "Exporting " << fileName << "\n";
+		launchArg += settingsToLaunchArgs(it != settingsFiles.end() ? *it : fileName);
 
 
 		launchArg += " --obj \"" + file + "\"";
 
-		std::cout << launchArg << "\n";
+		std::cout << "\t" << launchArg << "\n";
 
 		if (CreateProcess("./RecastDemo.exe", &launchArg[0], 0, 0, true, 0, 0, 0, &sinfo, &info))
 		{
 			WaitForSingleObject(info.hProcess, INFINITE);
-
-			std::cout << "\nExported navmesh for " << fileName << " in " <<
-				std::to_string(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - entryExportTime).count()) << " seconds.\n";
+			
+			DWORD exitCode;
+			GetExitCodeProcess(info.hProcess, &exitCode);
+			if (exitCode == EXIT_SUCCESS)
+			{
+				exportCount++;
+				std::cout << "\n\tExported navmesh for " << fileName << " in " <<
+					std::to_string(std::chrono::duration_cast<std::chrono::seconds>(hclock::now() - entryExportTime).count()) << " seconds.\n";
+			}
+			else
+			{
+				std::cout << "\n\tUnable to export navmesh for " << fileName << "\n";
+			}
+			CloseHandle(info.hProcess);
+			CloseHandle(info.hThread);
 		}
 		else
-			std::cout << "\nUnable to export navmesh for " << fileName << "\n";
+		{
+			std::cout << "\n\tUnable to export navmesh for " << fileName << "\n";
+		}
 	}
+	std::cout << "Exported " << exportCount << " files in " << std::chrono::duration_cast<std::chrono::seconds>(hclock::now() - start).count() << " seconds.\n";
 }

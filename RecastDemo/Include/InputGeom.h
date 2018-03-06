@@ -76,8 +76,7 @@ class InputGeom
 	rcChunkyTriMesh* m_chunkyMesh;
 	rcMeshLoaderObj* m_mesh;
 	float m_meshBMin[3], m_meshBMax[3];
-	BuildSettings m_buildSettings;
-	bool m_hasBuildSettings;
+
 	
 	/// @name Off-Mesh connections.
 	///@{
@@ -103,7 +102,8 @@ class InputGeom
 public:
 	InputGeom();
 	~InputGeom();
-	
+	BuildSettings m_buildSettings;
+	bool m_hasBuildSettings;
 	
 	bool load(class rcContext* ctx, const std::string& filepath);
 	bool saveGeomSet(const BuildSettings* settings);

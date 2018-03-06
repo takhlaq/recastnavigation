@@ -72,33 +72,34 @@ static SampleItem g_samples[] =
 };
 static const int g_nsamples = sizeof(g_samples) / sizeof(SampleItem);
 
-std::ofstream of("log.txt", std::ios::app | std::ios::ate | std::ios::out);
 
 Sample* sample = nullptr;
 InputGeom* geom = nullptr;
 BuildSettings settings;
 std::string inputFileName;
 std::string type;
-auto f = fopen("out.log", "ab+");
+
+void logToFile(const std::string& str)
+{
+	std::ofstream of("log.txt", std::ios::app | std::ios::ate | std::ios::out);
+	of << str;
+	of.close();
+}
 
 bool parseArgs(int argc, char* argv[])
 {
 	std::vector<std::string> argVec(argv, argv + argc);
-	int i = argVec[0].find(".exe") == -1 ? 0 : 1;
+	int i = argc % 2;
 	settings = BuildSettings{0};
-	of << "==============\n";
-	of << argc << " " << argVec.size() << "\n";
-	of << argVec[0] << " " << argVec[1] << "\n";
-
+	logToFile(argVec[0] + "\n");
 	for (; i + 1 < argVec.size(); i += 2)
 	{
 		std::string arg = argVec[i];
 		std::string val = argVec[i + 1];
 
-		fprintf(f, (arg + " " + val + "\r\n").c_str());
 		//arg = arg.erase(0, arg.find_first_not_of('-'));
 		std::string logStr(arg + " " + val + "\n");
-		of << logStr;
+		logToFile(logStr);
 		if (arg == "--cellSize")
 			settings.cellSize = std::stof(val);
 		else if (arg == "--cellHeight")
@@ -146,24 +147,33 @@ bool parseArgs(int argc, char* argv[])
 	return sample != nullptr;
 }
 
+
 bool commandLineBuild()
 {
 	geom = new InputGeom;
+	geom->m_buildSettings = settings;
+	
 	BuildContext ctx;
-	sample->collectSettings(settings);
+	memset(&ctx, 0, sizeof(ctx));
+
 	geom->load(&ctx, inputFileName);
+
 	sample->setContext(&ctx);
 	sample->handleMeshChanged(geom);
-	//sample->handleBuild();
-	fprintf(f, ctx.getLogText(RC_LOG_ERROR));
-	of << ctx.getLogText(RC_LOG_ERROR);
+	sample->handleSettings();
+	sample->handleBuild();
 	if (type == "tileMesh")
 	{
 		auto tile = static_cast<Sample_TileMesh*>(sample);
-		tile->handleBuild();
+
 		std::string fileName = inputFileName;
 		fileName = fileName.substr(0, fileName.find_last_of('.'));
-		static_cast<Sample_TileMesh*>(sample)->saveAll(fileName.c_str(), sample->getNavMesh());
+		BuildSettings s2{0};
+		rcVcopy(s2.navMeshBMin, geom->getNavMeshBoundsMin());
+		rcVcopy(s2.navMeshBMax, geom->getNavMeshBoundsMax());
+		sample->collectSettings(s2);
+		tile->saveAll((fileName + ".nav").c_str(), tile->getNavMesh());
+		geom->saveGeomSet(&s2);
 		return true;
 	}
 	return false;
@@ -180,8 +190,7 @@ int main(int argc, char* argv[])
 
 	if (parseArgs(argc, argv) && commandLineBuild())
 	{
-		fprintf(f, "\nDone!\n");
-		fclose(f);
+		logToFile("Done!\n\n\n");
 		return 0;
 	}
 	// Enable depth buffer.
