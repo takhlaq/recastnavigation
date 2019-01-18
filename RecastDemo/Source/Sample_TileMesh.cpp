@@ -224,6 +224,11 @@ void Sample_TileMesh::cleanup()
 	m_dmesh = 0;
 }
 
+void Sample_TileMesh::saveAll(const char* path, const dtNavMesh* mesh)
+{
+	Sample::saveAll(path, mesh);
+}
+
 void Sample_TileMesh::handleSettings()
 {
 	Sample::handleCommonSettings();

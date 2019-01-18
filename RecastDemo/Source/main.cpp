@@ -91,6 +91,22 @@ bool parseArgs(int argc, char* argv[])
 	std::vector<std::string> argVec(argv, argv + argc);
 	int i = argc % 2;
 	settings = BuildSettings{0};
+	settings.cellHeight = 0.2f;
+	settings.cellSize = 0.2f;
+	settings.agentHeight = 2.f;
+	settings.agentRadius = 0.5;
+	settings.agentMaxClimb = 0.6;
+	settings.agentMaxSlope = 58.f;
+	settings.regionMinSize = 8.0f;
+	settings.regionMergeSize = 20.f;
+	settings.edgeMaxLen = 12.f;
+	settings.edgeMaxError = 1.4f;
+	settings.vertsPerPoly = 6.f;
+	settings.detailSampleDist = 6.f;
+	settings.detailSampleMaxError = 1.f;
+	settings.tileSize = 160.f;
+	settings.partitionType = 1.0f;
+
 	logToFile(argVec[0] + "\n");
 	for (; i + 1 < argVec.size(); i += 2)
 	{
