@@ -146,6 +146,7 @@ void Sample::handleMeshChanged(InputGeom* geom)
 		m_detailSampleMaxError = buildSettings->detailSampleMaxError;
 		m_partitionType = buildSettings->partitionType;
 	}
+	m_redraw = true;
 }
 
 void Sample::collectSettings(BuildSettings& settings)

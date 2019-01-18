@@ -193,6 +193,9 @@ int main(int /*argc*/, char** /*argv*/)
 	glEnable(GL_CULL_FACE);
 	glDepthFunc(GL_LEQUAL);
 	
+	GLuint geomList = glGenLists(1);
+	GLuint debugList = glGenLists(1);
+
 	bool done = false;
 	while(!done)
 	{
@@ -485,13 +488,25 @@ int main(int /*argc*/, char** /*argv*/)
 
 		glEnable(GL_FOG);
 
-		if (sample)
+		if (sample && sample->m_redraw)
+		{
+			glNewList(geomList, GL_COMPILE);
 			sample->handleRender();
+			sample->m_redraw = false;
+			glEndList();
+		}
 		if (test)
+		{
+			glNewList(debugList, GL_COMPILE);
 			test->handleRender();
-		
+			glEndList();
+		}
+
 		glDisable(GL_FOG);
 		
+		glCallList(geomList);
+		glCallList(debugList);
+
 		// Render GUI
 		glDisable(GL_DEPTH_TEST);
 		glMatrixMode(GL_PROJECTION);
@@ -713,6 +728,7 @@ int main(int /*argc*/, char** /*argv*/)
 				if (sample && geom)
 				{
 					sample->handleMeshChanged(geom);
+					sample->m_redraw = true;
 				}
 
 				if (geom || sample)

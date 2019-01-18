@@ -180,6 +180,8 @@ public:
 	void resetCommonSettings();
 	void handleCommonSettings();
 
+	bool m_redraw{true};
+
 private:
 	// Explicitly disabled copy constructor and copy assignment operator.
 	Sample(const Sample&);
