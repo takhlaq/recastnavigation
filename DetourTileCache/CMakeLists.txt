@@ -1,34 +1,42 @@
-file(GLOB SOURCES Source/*.cpp)
-
-if (RECASTNAVIGATION_STATIC)
-    add_library(DetourTileCache STATIC ${SOURCES})
-else ()
-    add_library(DetourTileCache SHARED ${SOURCES})
-endif ()
-
+add_library(DetourTileCache)
 add_library(RecastNavigation::DetourTileCache ALIAS DetourTileCache)
 
-set(DetourTileCache_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Include")
+set_target_properties(DetourTileCache PROPERTIES
+    DEBUG_POSTFIX -d
+    SOVERSION ${SOVERSION}
+    VERSION ${LIB_VERSION}
+    COMPILE_PDB_OUTPUT_DIRECTORY .
+    COMPILE_PDB_NAME "DetourTileCache-d"
+    CXX_STANDARD 98
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF  # Disable compiler-specific extensions
+)
 
 target_include_directories(DetourTileCache PUBLIC
-    "$<BUILD_INTERFACE:${DetourTileCache_INCLUDE_DIR}>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/recastnavigation>"
 )
 
-target_link_libraries(DetourTileCache
-    Detour
+target_sources(DetourTileCache PRIVATE
+    Source/DetourTileCache.cpp
+    Source/DetourTileCacheBuilder.cpp
 )
 
-set_target_properties(DetourTileCache PROPERTIES
-        SOVERSION ${SOVERSION}
-        VERSION ${VERSION}
-        )
-
+target_link_libraries(DetourTileCache Detour)
 
 install(TARGETS DetourTileCache
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib
-        COMPONENT library
-        )
+    EXPORT recastnavigation-targets
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT library
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} ${CMAKE_INSTALL_INCLUDEDIR}/recastnavigation
+)
 
-file(GLOB INCLUDES Include/*.h)
-install(FILES ${INCLUDES} DESTINATION include)
+install(DIRECTORY Include/ 
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/recastnavigation
+    FILES_MATCHING PATTERN "*.h"
+)
+
+if (MSVC)
+    install(FILES "$<TARGET_FILE_DIR:DetourTileCache>/DetourTileCache-d.pdb" CONFIGURATIONS "Debug" DESTINATION "lib" OPTIONAL)
+endif()

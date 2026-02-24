@@ -78,7 +78,7 @@ struct dtTileCachePolyMesh
 
 struct dtTileCacheAlloc
 {
-	virtual ~dtTileCacheAlloc() {}
+	virtual ~dtTileCacheAlloc();
 
 	virtual void reset() {}
 	
@@ -95,7 +95,7 @@ struct dtTileCacheAlloc
 
 struct dtTileCacheCompressor
 {
-	virtual ~dtTileCacheCompressor() { }
+	virtual ~dtTileCacheCompressor();
 
 	virtual int maxCompressedSize(const int bufferSize) = 0;
 	virtual dtStatus compress(const unsigned char* buffer, const int bufferSize,
@@ -146,8 +146,8 @@ dtStatus dtBuildTileCachePolyMesh(dtTileCacheAlloc* alloc,
 								  dtTileCacheContourSet& lcset,
 								  dtTileCachePolyMesh& mesh);
 
-/// Swaps the endianess of the compressed tile data's header (#dtTileCacheLayerHeader).
-/// Tile layer data does not need endian swapping as it consits only of bytes.
+/// Swaps the endianness of the compressed tile data's header (#dtTileCacheLayerHeader).
+/// Tile layer data does not need endian swapping as it consist only of bytes.
 ///  @param[in,out]	data		The tile data array.
 ///  @param[in]		dataSize	The size of the data array.
 bool dtTileCacheHeaderSwapEndian(unsigned char* data, const int dataSize);

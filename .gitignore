@@ -9,6 +9,10 @@
 *.so
 *.idb
 
+# clangd
+.cache/
+compile_commands.json
+
 ## Linux exes have no extension
 RecastDemo/Bin/RecastDemo
 RecastDemo/Bin/Tests
@@ -16,8 +20,14 @@ RecastDemo/Bin/Tests
 # Build directory
 RecastDemo/Build
 
+# XCode debug symbols archive
+RecastDemo/Bin/*.dSYM
+
 # Ignore meshes
 RecastDemo/Bin/Meshes/*
+
+# Dear IMGUI state
+RecastDemo/Bin/imgui.ini
 
 ## Logs and databases #
 *.log
@@ -43,6 +53,9 @@ RecastDemo/Contrib/SDL/*
 
 ## Generated doc files
 Docs/html
+
+## CMake build cache
+build
 
 ## IDE files
 .idea/
