@@ -14,6 +14,7 @@ set_target_properties(Recast PROPERTIES
 )
 
 target_compile_definitions(Recast PUBLIC "$<$<NOT:${RECASTNAVIGATION_ENABLE_ASSERTS}>:RC_DISABLE_ASSERTS>")
+target_compile_definitions(Recast PRIVATE RC_MAX_LAYERS_DEF=255)
 
 target_include_directories(Recast PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include>"
