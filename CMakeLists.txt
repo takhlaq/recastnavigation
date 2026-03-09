@@ -48,12 +48,14 @@ if (RECASTNAVIGATION_ENABLE_FAST_MATH)
     add_compile_definitions(RC_FAST_MATH)
 endif()
 
-# Disable RTTI and exceptions for library code
+# disable exceptions for library code
+# RTTI must remain enabled on non-MSVC builds so that typeinfo is emitted for the 
+# abstract base types (dtTileCacheAlloc, dtTileCacheCompressor, dtTileCacheMeshProcess)
+# linker fails with "undefined reference to typeinfo for ..." on linux/clang otherwise
 if(MSVC)
-    string(REPLACE "/GR" "/GR-" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     string(REPLACE "/EHsc" "/EHs-c-" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 else()
-    add_compile_options(-fno-rtti -fno-exceptions)
+    add_compile_options(-fno-exceptions)
 endif()
 
 # Debug symbols
