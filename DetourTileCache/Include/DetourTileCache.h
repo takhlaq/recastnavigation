@@ -59,7 +59,7 @@ struct dtObstacleOrientedBox
 	float rotAux[ 2 ]; //{ cos(0.5f*angle)*sin(-0.5f*angle); cos(0.5f*angle)*cos(0.5f*angle) - 0.5 }
 };
 
-static const int DT_MAX_TOUCHED_TILES = 8;
+static const int DT_MAX_TOUCHED_TILES = 32;
 struct dtTileCacheObstacle
 {
 	union
