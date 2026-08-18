@@ -298,6 +298,8 @@ void Mesh::readFromObj(char* buf, size_t bufLen)
 
 	// Calculate face normals.
 	normals.resize(tris.size());
+	printf("[InputGeom] skipping normals\n");
+	/*
 	for (int i = 0; i < static_cast<int>(tris.size()); i += 3)
 	{
 		const float* vertex0 = &verts[tris[i + 0] * 3];
@@ -330,6 +332,7 @@ void Mesh::readFromObj(char* buf, size_t bufLen)
 			normal[2] *= normalLength;
 		}
 	}
+	//*/
 }
 
 bool InputGeom::loadMesh(rcContext* ctx, const std::string& filepath)

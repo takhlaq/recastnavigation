@@ -41,7 +41,7 @@ int compareMinY(const void* va, const void* vb)
 }
 
 /// Calculates the total extent of all bounds in the given index range
-void calcTotalBounds(const std::vector<IndexedBounds> bounds, const int start, const int end, float* outBMin, float* outBMax)
+void calcTotalBounds(const std::vector<IndexedBounds>& bounds, const int start, const int end, float* outBMin, float* outBMax)
 {
 	outBMin[0] = bounds[start].bmin[0];
 	outBMin[1] = bounds[start].bmin[1];
@@ -61,7 +61,7 @@ void calcTotalBounds(const std::vector<IndexedBounds> bounds, const int start, c
 }
 
 void subdivide(
-	std::vector<IndexedBounds> triBounds,
+	std::vector<IndexedBounds>& triBounds,
 	int imin,
 	int imax,
 	int trisPerChunk,
@@ -109,14 +109,27 @@ void subdivide(
 		float xLength = node.bmax[0] - node.bmin[0];
 		float yLength = node.bmax[1] - node.bmin[1];
 
-		// Sort along the longest axis
-		qsort(
-			triBounds.data() + imin,
-			static_cast<size_t>(numTriBoundsInRange),
-			sizeof(IndexedBounds),
-			(xLength >= yLength) ? compareMinX : compareMinY);
-
 		int isplit = imin + numTriBoundsInRange / 2;
+		auto begin = triBounds.begin() + imin;
+		auto mid = triBounds.begin() + isplit;  // it's mid...
+		auto end = triBounds.begin() + imax;
+
+		if (xLength >= yLength)
+		{
+			std::nth_element(
+				begin,
+				mid,
+				end,
+				[](const IndexedBounds& a, const IndexedBounds& b) { return a.bmin[0] < b.bmin[0]; });
+		}
+		else
+		{
+			std::nth_element(
+				begin,
+				mid,
+				end,
+				[](const IndexedBounds& a, const IndexedBounds& b) { return a.bmin[1] < b.bmin[1]; });
+		}
 
 		// Left
 		subdivide(triBounds, imin, isplit, trisPerChunk, curNode, nodes, maxNodes, curTri, outTris, inTris);
@@ -224,6 +237,7 @@ void PartitionedMesh::PartitionMesh(const float* verts, const int* tris, int num
 		}
 		maxTrisPerChunk = std::max(maxTrisPerChunk, node.numTris);
 	}
+	printf("[InputGeom] maxTrisPerChunk %u\n", maxTrisPerChunk);
 }
 
 void PartitionedMesh::GetNodesOverlappingRect(float bmin[2], float bmax[2], std::vector<int>& outNodes) const
