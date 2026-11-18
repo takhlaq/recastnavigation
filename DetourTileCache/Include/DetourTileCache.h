@@ -2,9 +2,25 @@
 #define DETOURTILECACHE_H
 
 #include "DetourStatus.h"
+#include <cstdint>
 
 typedef unsigned int dtObstacleRef;
 typedef unsigned int dtCompressedTileRef;
+
+enum PolyAreas
+{
+	AREA_GROUND = 63, // default walkable ground
+	AREA_DOOR = 10, // custom area for doors
+	AREA_OBSTACLE = 11, // custom area for cylinder
+};
+
+enum PolyFlags
+{
+	FLAG_WALK = 0x01, // standard walkable flag
+	FLAG_DOOR = 0x02, // flag to pass through doors
+	FLAG_OBSTACLE = 0x04, // flag to pass through obstacles
+	FLAG_ALL = 0xFFFF
+};
 
 /// Flags for addTile
 enum dtCompressedTileFlags
@@ -69,6 +85,7 @@ struct dtTileCacheObstacle
 		dtObstacleOrientedBox orientedBox;
 	};
 
+	uint8_t area;
 	dtCompressedTileRef touched[DT_MAX_TOUCHED_TILES];
 	dtCompressedTileRef pending[DT_MAX_TOUCHED_TILES];
 	unsigned short salt;
@@ -134,13 +151,13 @@ public:
 	dtStatus removeTile(dtCompressedTileRef ref, unsigned char** data, int* dataSize);
 	
 	// Cylinder obstacle.
-	dtStatus addObstacle(const float* pos, const float radius, const float height, dtObstacleRef* result);
+	dtStatus addObstacle(const float* pos, const float radius, const float height, dtObstacleRef* result, uint8_t area = 0);
 
 	// Aabb obstacle.
-	dtStatus addBoxObstacle(const float* bmin, const float* bmax, dtObstacleRef* result);
+	dtStatus addBoxObstacle(const float* bmin, const float* bmax, dtObstacleRef* result, uint8_t area = 0);
 
 	// Box obstacle: can be rotated in Y.
-	dtStatus addBoxObstacle(const float* center, const float* halfExtents, const float yRadians, dtObstacleRef* result);
+	dtStatus addBoxObstacle(const float* center, const float* halfExtents, const float yRadians, dtObstacleRef* result, uint8_t area = 0);
 	
 	dtStatus removeObstacle(const dtObstacleRef ref);
 	
