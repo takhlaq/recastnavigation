@@ -2,7 +2,6 @@
 #define DETOURTILECACHE_H
 
 #include "DetourStatus.h"
-#include <cstdint>
 
 typedef unsigned int dtObstacleRef;
 typedef unsigned int dtCompressedTileRef;
@@ -85,7 +84,7 @@ struct dtTileCacheObstacle
 		dtObstacleOrientedBox orientedBox;
 	};
 
-	uint8_t area;
+	unsigned char area;
 	dtCompressedTileRef touched[DT_MAX_TOUCHED_TILES];
 	dtCompressedTileRef pending[DT_MAX_TOUCHED_TILES];
 	unsigned short salt;
@@ -151,13 +150,13 @@ public:
 	dtStatus removeTile(dtCompressedTileRef ref, unsigned char** data, int* dataSize);
 	
 	// Cylinder obstacle.
-	dtStatus addObstacle(const float* pos, const float radius, const float height, dtObstacleRef* result, uint8_t area = 0);
+	dtStatus addObstacle(const float* pos, const float radius, const float height, dtObstacleRef* result, unsigned char area = 0);
 
 	// Aabb obstacle.
-	dtStatus addBoxObstacle(const float* bmin, const float* bmax, dtObstacleRef* result, uint8_t area = 0);
+	dtStatus addBoxObstacle(const float* bmin, const float* bmax, dtObstacleRef* result, unsigned char area = 0);
 
 	// Box obstacle: can be rotated in Y.
-	dtStatus addBoxObstacle(const float* center, const float* halfExtents, const float yRadians, dtObstacleRef* result, uint8_t area = 0);
+	dtStatus addBoxObstacle(const float* center, const float* halfExtents, const float yRadians, dtObstacleRef* result, unsigned char area = 0);
 	
 	dtStatus removeObstacle(const dtObstacleRef ref);
 	

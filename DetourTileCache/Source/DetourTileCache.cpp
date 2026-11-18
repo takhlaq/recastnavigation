@@ -356,7 +356,7 @@ dtStatus dtTileCache::removeTile(dtCompressedTileRef ref, unsigned char** data, 
 }
 
 
-dtStatus dtTileCache::addObstacle(const float* pos, const float radius, const float height, dtObstacleRef* result, uint8_t area)
+dtStatus dtTileCache::addObstacle(const float* pos, const float radius, const float height, dtObstacleRef* result, unsigned char area)
 {
 	if (m_nreqs >= MAX_REQUESTS)
 		return DT_FAILURE | DT_BUFFER_TOO_SMALL;
@@ -393,7 +393,7 @@ dtStatus dtTileCache::addObstacle(const float* pos, const float radius, const fl
 	return DT_SUCCESS;
 }
 
-dtStatus dtTileCache::addBoxObstacle(const float* bmin, const float* bmax, dtObstacleRef* result, uint8_t area)
+dtStatus dtTileCache::addBoxObstacle(const float* bmin, const float* bmax, dtObstacleRef* result, unsigned char area)
 {
 	if (m_nreqs >= MAX_REQUESTS)
 		return DT_FAILURE | DT_BUFFER_TOO_SMALL;
@@ -429,7 +429,7 @@ dtStatus dtTileCache::addBoxObstacle(const float* bmin, const float* bmax, dtObs
 	return DT_SUCCESS;
 }
 
-dtStatus dtTileCache::addBoxObstacle(const float* center, const float* halfExtents, const float yRadians, dtObstacleRef* result, uint8_t area)
+dtStatus dtTileCache::addBoxObstacle(const float* center, const float* halfExtents, const float yRadians, dtObstacleRef* result, unsigned char area)
 {
 	if (m_nreqs >= MAX_REQUESTS)
 		return DT_FAILURE | DT_BUFFER_TOO_SMALL;
